@@ -7,7 +7,7 @@
 /*\
  * Verify that gethostname(2) fails with
  *
- * - ENAMETOOLONG when len is smaller than the actual size
+ * - ENAMETOOLONG or EOVERFLOW when len is smaller than the actual size
  */
 
 #include "tst_test.h"
@@ -16,11 +16,13 @@ static void verify_gethostname(void)
 {
 	char hostname[HOST_NAME_MAX + 1];
 	int real_length;
+	const int exp_errnos[] = {ENAMETOOLONG, EOVERFLOW};
 
 	SAFE_GETHOSTNAME(hostname, sizeof(hostname));
 	real_length = strlen(hostname);
 
-	TST_EXP_FAIL(gethostname(hostname, real_length - 1), ENAMETOOLONG,
+	TST_EXP_FAIL2_ARR(gethostname(hostname, real_length - 1),
+		exp_errnos, ARRAY_SIZE(exp_errnos),
 		"len is smaller than the actual size");
 }
 
